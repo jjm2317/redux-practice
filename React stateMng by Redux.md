@@ -142,3 +142,194 @@ window.unsubscribe = unsubscribe
 
 ```
 
+
+
+## Redux 모듈
+
+**리덕스 모듈이란**
+
+액션 타입, 액션 생성 함수, 리듀서가 모두 들어있는 파일을 말한다.
+
+각각 다른 파일에 저장할 수도 있다.
+
+**Ducks 패턴**
+
+- 한파일에 몰아서 작성하는것
+
+
+
+**./modules/counter.js**
+
+```js
+// 액션 타입
+//카운터에서 +- 할때 몇씩 할지 정함
+//ducks 패턴 사용시 문자열 앞부분에 접두사 붙입 : 다른 모듈과이름이 중복되지 않게 하려고
+
+const SEF_DIFF = 'counter/SET_DIFF';
+const INCREASE = 'counter/INCREASE';
+const DECREASE = 'counter/DECREASE';
+
+// 액션 생성함수
+// 앞에 export : 다른 파일에서 사용
+export const setDiff = diff => ({ type: SEF_DIFF, diff});
+export const increase = () => ({ type: INCREASE});
+export const decrease = () => ({ type: DECREASE});
+
+//초기상태 : 모듈의 초기상태
+const initialState = {
+  number: 0,
+  diff: 1
+};
+
+//리듀서 함수 정의
+//export default : 클래스나 함수 export시 사용
+export default function counter(state = initialState, action) {
+  switch (action.type) {
+    case SEF_DIFF:
+      return {
+        ...state,
+        diff: action.diff
+      };
+    case INCREASE: 
+      return {
+        ...state,
+        number: state.number + state.diff
+      }
+    case DECREASE:
+      return {
+        ...state,
+        number: state.numbmer - state.diff
+      }
+
+    default:
+        return state;
+  }
+} 
+
+//액션타입 > 액션 생성함수 > 초기 상태 > 리듀서 순
+```
+
+
+
+**./modules/todos.js**
+
+```js
+//상태 하나당 하나의 파일로 관리한다.
+
+//액션 타입
+const ADD_TODO = 'todos/ADD_TODO';
+const TOGGLE_TODO = 'todos/TOGGLE_TODO';
+
+//새로운 todo 생성을 위한 id 값 변수 저장
+let nextId = 1;
+//액션 객체에는 변화를 줄 요소에 대해서 기술
+//addTodo: id와 text
+export const addTodo = text => ({
+  type: ADD_TODO,
+  todo: {
+    id: nextId++,
+    text
+  }
+});
+//특정 id를 선택해서 토글하는 작업
+export const toggleTodo = id => ({
+  type: TOGGLE_TODO,
+  id
+});
+
+const initialState = [
+  /*
+  {
+    id: 1,
+    text: 'ex'
+    done: false
+  }
+  */ 
+];
+
+export default function todos(state = initialState, action) {
+  switch(action.type) {
+    case ADD_TODO:
+      return [
+        ...state,
+        { ...action.todo, done: false}
+      ];
+    case TOGGLE_TODO:
+      return state.map(todo => action.id !== todo.id ? {...todo} : {...todo, done: !todo.done});
+    default:
+      return state;
+  }
+}
+```
+
+
+
+루트리듀서
+
+**./modules/index.js**
+
+```js
+//루트 리듀서
+//두개의 리듀서 파일을 하나로 결합
+import { combineReducers } from 'redux';
+import counter from './counter';
+import todos from './todos';
+
+//루트리듀서 함수
+//만들었던 모양대로 각각의 상태를 지니고 있다. 
+const rootReducer = combineReducers({
+  counter, 
+  todos
+});
+
+export default rootReducer;
+
+//두개의 리덕스 모듈을 만들었고 루트리듀서로 합췄다.
+
+```
+
+
+
+리액트 적용
+
+**index.js**
+
+```js
+import React from 'react';
+import ReactDOM from 'react-dom';
+import './index.css';
+import App from './App';
+import reportWebVitals from './reportWebVitals';
+//프로바이더를 통해서 리액트 프로젝트에서 리덕스 적용 가능
+import { Provider } from 'react-redux';
+//스토어를 만들기위해 사용 
+import { createStore } from 'redux';
+//루트 리듀서 불러오기
+//modules 디렉토리에서 index.js란 이름으로 rootReducer를 내보냈다.
+//modules 디렉토리를 불러오면 index.js 를 불러온다
+import rootReducer from './modules';
+
+const store = createStore(rootReducer);
+/*앱컴포넌트를 Provider로 감싸고
+store 어트리뷰트로 store 값을 할당
+*/
+ReactDOM.render(
+<Provider store={store}>
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+</Provider>,
+  document.getElementById('root')
+);
+
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+reportWebVitals();
+
+```
+
+
+
+
+

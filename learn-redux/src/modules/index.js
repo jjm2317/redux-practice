@@ -5,6 +5,7 @@ import counter from './counter';
 import todos from './todos';
 
 //루트리듀서 함수
+//만들었던 모양대로 각각의 상태를 지니고 있다. 
 const rootReducer = combineReducers({
   counter, 
   todos
