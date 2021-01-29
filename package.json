@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/jjm2317/redux-practice#readme",
   "dependencies": {
-    "redux": "^4.0.5"
+    "redux": "^4.0.5",
+    "redux-devtools-extension": "^2.13.8"
   }
 }
